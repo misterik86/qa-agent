@@ -1,0 +1,10 @@
+FROM mcr.microsoft.com/playwright/python:v1.49.1-noble
+
+WORKDIR /runner
+
+COPY sandbox/requirements.txt /runner/requirements.txt
+RUN pip install --no-cache-dir -r /runner/requirements.txt
+
+COPY sandbox /runner
+
+ENTRYPOINT ["python", "/runner/runner.py"]

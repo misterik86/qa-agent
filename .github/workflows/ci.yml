@@ -1,0 +1,67 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    services:
+      postgres:
+        image: postgres:16-alpine
+        env:
+          POSTGRES_USER: qa
+          POSTGRES_PASSWORD: qa
+          POSTGRES_DB: qa_agent
+        ports: ["5432:5432"]
+        options: >-
+          --health-cmd "pg_isready -U qa"
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 10
+      redis:
+        image: redis:7-alpine
+        ports: ["6379:6379"]
+        options: >-
+          --health-cmd "redis-cli ping"
+          --health-interval 5s
+          --health-timeout 3s
+          --health-retries 10
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: Install dependencies
+        working-directory: backend
+        run: |
+          pip install -r requirements.txt
+          pip install -r ../sandbox/requirements.txt
+          pip install pytest pytest-cov
+
+      - name: Run tests with coverage
+        working-directory: backend
+        env:
+          DATABASE_URL: postgresql+psycopg2://qa:qa@localhost:5432/qa_agent
+          REDIS_URL: redis://localhost:6379/0
+          SANDBOX_RUNNER: local
+          CELERY_ALWAYS_EAGER: "true"
+          DEV_AUTO_VERIFY: "true"
+          YOOKASSA_TEST_MODE: "true"
+        run: |
+          python -m pytest ../tests --cov=app --cov-report=term-missing -m "not network"
+
+  build:
+    runs-on: ubuntu-latest
+    needs: test
+    steps:
+      - uses: actions/checkout@v4
+      - name: Build backend image
+        run: docker build -f docker/Dockerfile.backend -t qa-agent-backend .
+      - name: Build sandbox image
+        run: docker build -f docker/Dockerfile.sandbox -t qa-agent-sandbox:latest .

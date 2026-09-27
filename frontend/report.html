@@ -1,0 +1,76 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>QA Agent — Отчёт о тестировании</title>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+  <link href="/static/css/style.css" rel="stylesheet">
+</head>
+<body class="bg-light">
+  <nav class="navbar navbar-dark bg-primary">
+    <div class="container">
+      <a class="navbar-brand" href="/">QA Agent</a>
+      <span class="navbar-text">Публичный отчёт о тестировании</span>
+    </div>
+  </nav>
+
+  <div class="container py-4">
+    <div id="content"></div>
+  </div>
+
+  <footer class="bg-dark text-white py-3 mt-4">
+    <div class="container d-flex justify-content-between">
+      <span>© 2026 QA Agent</span>
+      <a href="/" class="text-white-50">Сервис автоматизированного тестирования</a>
+    </div>
+  </footer>
+
+  <script>
+    const esc = (s) => String(s ?? "").replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
+    const token = location.pathname.split("/").pop();
+
+    function shotLink(order) {
+      return `<a href="/api/public/reports/${token}/screenshot/${order}" target="_blank">[скриншот]</a>`;
+    }
+
+    (async () => {
+      const el = document.getElementById("content");
+      try {
+        const resp = await fetch(`/api/public/reports/${token}`);
+        if (!resp.ok) throw new Error((await resp.json()).detail || "Отчёт не найден");
+        const r = await resp.json();
+        const badge = { passed: "success", failed: "danger", timeout: "warning", error: "danger" }[r.status] || "secondary";
+        const rows = r.steps.map((s) => `
+          <tr>
+            <td>${s.order}</td>
+            <td>${esc(s.expected || s.action_text || s.action)}</td>
+            <td>${esc(s.action_text || s.selector)}</td>
+            <td>${esc(s.message || "")} ${s.has_screenshot ? shotLink(s.order) : ""}</td>
+            <td><span class="badge bg-${s.status === "passed" ? "success" : "danger"}">${esc(s.status)}</span></td>
+          </tr>`).join("");
+        el.innerHTML = `
+          <div class="card"><div class="card-body">
+            <h3>${esc(r.name)} <span class="badge bg-${badge}">${esc(r.status_label || r.status)}</span></h3>
+            <p class="text-muted mb-1">Сайт: <a href="${esc(r.url)}" target="_blank">${esc(r.url)}</a></p>
+            <p class="text-muted">${r.finished_at ? "Завершён: " + new Date(r.finished_at).toLocaleString("ru-RU") : ""}</p>
+            <div class="row text-center my-4">
+              <div class="col"><div class="fs-2 fw-bold">${r.total_steps}</div><div class="text-muted">всего проверок</div></div>
+              <div class="col"><div class="fs-2 fw-bold text-success">${r.passed_steps}</div><div class="text-muted">прошли</div></div>
+              <div class="col"><div class="fs-2 fw-bold ${r.failed_steps ? "text-danger" : ""}">${r.failed_steps}</div><div class="text-muted">провалились</div></div>
+              <div class="col"><div class="fs-2 fw-bold">${r.total_time_seconds}s</div><div class="text-muted">время</div></div>
+            </div>
+            ${r.error_message ? `<div class="alert alert-danger py-2">${esc(r.error_message)}</div>` : ""}
+            <table class="table table-striped table-sm">
+              <thead><tr><th>#</th><th>Тест-кейс</th><th>Действие</th><th>Результат</th><th>Вердикт</th></tr></thead>
+              <tbody>${rows}</tbody>
+            </table>
+          </div></div>`;
+        document.title = `Отчёт: ${r.name}`;
+      } catch (e) {
+        el.innerHTML = `<div class="alert alert-warning">${esc(e.message)}. Возможно, ссылка отозвана владельцем.</div>`;
+      }
+    })();
+  </script>
+</body>
+</html>

@@ -1,0 +1,33 @@
+# Нормализация переводов строк: репозиторий хранит LF, checkout на Windows — CRLF.
+# Без этого один и тот же файл даёт разные диффы у разных людей.
+* text=auto eol=lf
+
+*.py    text diff=python
+*.js    text diff=javascript
+*.ts    text
+*.html  text
+*.css   text
+*.json  text
+*.yml   text
+*.yaml  text
+*.md    text
+*.txt   text
+*.sql   text
+*.sh    text eol=lf
+*.ps1   text eol=crlf
+Dockerfile      text
+.gitignore      text
+.gitattributes  text
+.dockerignore  text
+alembic.ini     text
+
+# Бинарные — не трогать
+*.png  binary
+*.jpg  binary
+*.jpeg binary
+*.gif  binary
+*.ico  binary
+*.pdf  binary
+*.woff binary
+*.woff2 binary
+*.db   binary

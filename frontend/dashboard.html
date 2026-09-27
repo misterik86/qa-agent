@@ -1,0 +1,283 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>QA Agent — Личный кабинет</title>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+  <link href="/static/css/style.css" rel="stylesheet">
+</head>
+<body>
+  <nav class="navbar navbar-expand-lg navbar-dark bg-primary">
+    <div class="container">
+      <a class="navbar-brand" href="/dashboard.html">QA Agent</a>
+      <div class="collapse navbar-collapse" id="dnav">
+        <ul class="navbar-nav me-auto">
+          <li class="nav-item"><a class="nav-link active" href="#" data-view="runs">Прогоны</a></li>
+          <li class="nav-item"><a class="nav-link" href="#" data-view="suites">Наборы</a></li>
+          <li class="nav-item"><a class="nav-link" href="#" data-view="scenarios">Сценарии</a></li>
+          <li class="nav-item"><a class="nav-link" href="#" data-view="schedule">Расписания</a></li>
+          <li class="nav-item"><a class="nav-link" href="#" data-view="settings">Настройки</a></li>
+          <li class="nav-item"><a class="nav-link" href="#" data-view="faq">FAQ</a></li>
+        </ul>
+        <span class="navbar-text me-3" id="nav-plan"></span>
+        <button class="btn btn-outline-light btn-sm" id="logout-btn">Выйти</button>
+      </div>
+    </div>
+  </nav>
+
+  <div class="container py-4">
+    <div id="alert-area"></div>
+
+    <!-- Auth view -->
+    <div id="auth-view" class="auth-card">
+      <ul class="nav nav-tabs" id="auth-tabs">
+        <li class="nav-item"><button class="nav-link active" data-bs-toggle="tab" data-bs-target="#login-tab">Вход</button></li>
+        <li class="nav-item"><button class="nav-link" data-bs-toggle="tab" data-bs-target="#register-tab">Регистрация</button></li>
+      </ul>
+      <div class="tab-content border border-top-0 p-4 rounded-bottom bg-white">
+        <div class="tab-pane fade show active" id="login-tab">
+          <form id="login-form">
+            <div class="mb-3"><label class="form-label">Email</label><input type="email" class="form-control" id="login-email" required></div>
+            <div class="mb-3"><label class="form-label">Пароль</label><input type="password" class="form-control" id="login-pass" required></div>
+            <button class="btn btn-primary w-100">Войти</button>
+            <a href="#" class="d-block mt-2 text-center small" id="forgot-link">Забыли пароль?</a>
+          </form>
+          <form id="forgot-form" class="d-none">
+            <div class="mb-3"><label class="form-label">Email</label><input type="email" class="form-control" id="forgot-email" required></div>
+            <button class="btn btn-outline-primary w-100">Отправить ссылку</button>
+            <a href="#" class="d-block mt-2 text-center small" id="back-to-login">← Назад ко входу</a>
+          </form>
+          <form id="reset-form" class="d-none">
+            <input type="hidden" id="reset-token">
+            <div class="mb-3"><label class="form-label">Новый пароль (мин. 8 символов)</label><input type="password" class="form-control" id="reset-pass" minlength="8" required></div>
+            <button class="btn btn-primary w-100">Сохранить новый пароль</button>
+            <a href="#" class="d-block mt-2 text-center small" id="back-to-login2">← Назад ко входу</a>
+          </form>
+        </div>
+        <div class="tab-pane fade" id="register-tab">
+          <form id="register-form">
+            <div class="mb-3"><label class="form-label">Имя</label><input type="text" class="form-control" id="reg-name"></div>
+            <div class="mb-3"><label class="form-label">Email</label><input type="email" class="form-control" id="reg-email" required></div>
+            <div class="mb-3"><label class="form-label">Пароль (мин. 8 символов)</label><input type="password" class="form-control" id="reg-pass" required></div>
+            <div class="form-check mb-2">
+              <input class="form-check-input" type="checkbox" id="reg-tos" required>
+              <label class="form-check-label small">Принимаю <a href="/legal.html">пользовательское соглашение</a>. Тестируйте только сайты, к которым у вас есть право доступа.</label>
+            </div>
+            <div class="form-check mb-3">
+              <input class="form-check-input" type="checkbox" id="reg-privacy" required>
+              <label class="form-check-label small">Принимаю <a href="/privacy.html">политику конфиденциальности</a></label>
+            </div>
+            <button class="btn btn-primary w-100">Зарегистрироваться</button>
+          </form>
+        </div>
+      </div>
+      <p class="text-center text-muted mt-3 small" id="auth-note">После регистрации проверьте почту и подтвердите email (в локальном режиме письма в MailHog).</p>
+    </div>
+
+    <!-- App view -->
+    <div id="app-view" class="d-none">
+      <!-- Stats -->
+      <div class="row mb-4">
+        <div class="col-md-3"><div class="card stat-card"><div class="card-body"><h5 class="text-muted">Прогонов</h5><h3 id="stat-total">0</h3></div></div></div>
+        <div class="col-md-3"><div class="card stat-card" style="border-color:#16a34a"><div class="card-body"><h5 class="text-muted">PASS</h5><h3 class="text-success" id="stat-passed">0</h3></div></div></div>
+        <div class="col-md-3"><div class="card stat-card" style="border-color:#dc2626"><div class="card-body"><h5 class="text-muted">FAIL</h5><h3 class="text-danger" id="stat-failed">0</h3></div></div></div>
+        <div class="col-md-3"><div class="card stat-card" style="border-color:#f59e0b"><div class="card-body"><h5 class="text-muted">Лимит</h5><h3 class="text-warning" id="stat-limit">—</h3></div></div></div>
+      </div>
+
+      <!-- New test form -->
+      <div class="card mb-4" id="new-test-card">
+        <div class="card-body">
+          <h5>Новый тест</h5>
+          <div class="row g-3">
+            <div class="col-md-3"><label class="form-label">URL</label><input class="form-control" id="run-url" placeholder="https://example.com"></div>
+            <div class="col-md-3"><label class="form-label">Имя</label><input class="form-control" id="run-name" placeholder="Smoke-тест"></div>
+            <div class="col-md-3">
+              <label class="form-label">Режим</label>
+              <select class="form-select" id="run-mode">
+                <option value="specific">Конкретный сценарий</option>
+                <option value="full_page">Проверить текущую страницу</option>
+                <option value="site">Весь сайт (обход страниц)</option>
+              </select>
+            </div>
+            <div class="col-md-3"><label class="form-label">Сценарий (по желанию)</label><select class="form-select" id="run-scenario"><option value="">— без сценария —</option></select></div>
+          </div>
+          <div class="row g-2 mt-2 align-items-end">
+            <div class="col-md-3">
+              <label class="form-label">Доступ к закрытой зоне</label>
+              <select class="form-select" id="run-cred"><option value="">— без авторизации —</option></select>
+            </div>
+            <div class="col-md-auto pb-1">
+              <button type="button" class="btn btn-sm btn-outline-secondary" id="run-cred-toggle">＋ Добавить логин и пароль</button>
+            </div>
+            <div class="col-12 d-none" id="run-cred-form">
+              <div class="row g-2 border rounded p-2 bg-light">
+                <div class="col-md-3"><input class="form-control form-control-sm" id="run-cr-label" placeholder="Название доступа (напр. Админка прод)"></div>
+                <div class="col-md-3"><input class="form-control form-control-sm" id="run-cr-url" placeholder="URL страницы входа"></div>
+                <div class="col-md-2"><input class="form-control form-control-sm" id="run-cr-user" placeholder="Логин"></div>
+                <div class="col-md-2"><input type="password" class="form-control form-control-sm" id="run-cr-pass" placeholder="Пароль"></div>
+                <div class="col-md-2"><button type="button" class="btn btn-sm btn-primary w-100" id="run-cr-save">Сохранить и выбрать</button></div>
+                <div class="col-12"><span class="small text-muted">Пароль шифруется на сервере и используется для авторизации перед тестом. Управление доступами — в разделе «Настройки».</span></div>
+              </div>
+            </div>
+          </div>
+          <div class="mt-3" id="script-block">
+            <label class="form-label">Описание сценария (русский, до 500 слов)</label>
+            <textarea class="form-control" id="run-script" rows="3" placeholder="Нажми на кнопку &quot;Войти&quot;, введи в поле логин test@test.com, ..."></textarea>
+            <div id="validation-result" class="mt-2"></div>
+          </div>
+          <div class="form-check mt-2">
+            <input class="form-check-input" type="checkbox" id="run-consent" required>
+            <label class="form-check-label">Я имею право тестировать этот сайт</label>
+          </div>
+          <div class="row mt-3 align-items-end">
+            <div class="col-auto"><button class="btn btn-primary" id="run-btn">Запустить тест</button></div>
+            <div class="col-auto"><button class="btn btn-outline-secondary" id="validate-btn">Проверить сценарий</button></div>
+            <div class="col" id="ws-status"></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Runs -->
+      <div id="view-runs">
+        <div class="d-flex justify-content-between align-items-center mb-3">
+          <h5>Последние прогоны</h5>
+          <button class="btn btn-sm btn-outline-primary" id="refresh-runs">Обновить</button>
+        </div>
+        <div class="table-responsive"><table class="table table-striped table-hover" id="runs-table">
+          <thead><tr><th>Имя</th><th>URL</th><th>Режим</th><th>Статус</th><th>PASS/FAIL</th><th>Время</th><th></th></tr></thead>
+          <tbody></tbody>
+        </table></div>
+      </div>
+
+      <!-- Suites -->
+      <div id="view-suites" class="d-none">
+        <div class="card mb-3"><div class="card-body">
+          <h5>Новый набор регрессии</h5>
+          <p class="small text-muted mb-2">Запустите «Проверить текущую страницу» на сайте, затем в деталях прогона нажмите
+            «Сохранить как набор» — и у вас появится постоянный набор тест-кейсов для повторных прогонов и сравнения.</p>
+          <div class="row g-2">
+            <div class="col-md-4"><input class="form-control" id="su-name" placeholder="Название (напр. Регрессия лендинга)"></div>
+            <div class="col-md-5"><input class="form-control" id="su-url" placeholder="https://example.com"></div>
+            <div class="col-md-3"><button class="btn btn-primary w-100" id="su-create">Создать</button></div>
+          </div>
+        </div></div>
+        <table class="table table-hover" id="suites-table">
+          <thead><tr><th>Название</th><th>URL</th><th>Кейсов</th><th>Последний прогон</th><th></th></tr></thead>
+          <tbody></tbody>
+        </table>
+      </div>
+
+      <!-- Scenarios -->
+      <div id="view-scenarios" class="d-none">
+        <div class="card mb-3"><div class="card-body">
+          <h5>Создать сценарий</h5>
+          <div class="row g-2">
+            <div class="col-md-3"><input class="form-control" id="sc-name" placeholder="Название"></div>
+            <div class="col-md-3"><input class="form-control" id="sc-url" placeholder="https://example.com"></div>
+            <div class="col-md-2">
+              <select class="form-select" id="sc-mode"><option value="specific">Сценарий</option><option value="full_page">Текущая страница</option></select>
+            </div>
+            <div class="col-md-2"><input class="form-control" id="sc-tags" placeholder="smoke,regression"></div>
+            <div class="col-md-2"><button class="btn btn-primary w-100" id="sc-create">Сохранить</button></div>
+          </div>
+          <textarea class="form-control mt-2" id="sc-script" rows="2" placeholder="Текст сценария"></textarea>
+          <div class="form-check mt-2"><input class="form-check-input" type="checkbox" id="sc-tpl"><label class="form-check-label small">Загрузить из шаблона «Логин»</label></div>
+        </div></div>
+        <table class="table table-hover" id="scenarios-table">
+          <thead><tr><th>Название</th><th>URL</th><th>Статус</th><th>Метки</th><th>Версия</th><th></th></tr></thead>
+          <tbody></tbody>
+        </table>
+      </div>
+
+      <!-- Schedule -->
+      <div id="view-schedule" class="d-none">
+        <div class="card mb-3"><div class="card-body">
+          <h5>Новое расписание</h5>
+          <div class="row g-2">
+            <div class="col-md-3"><select class="form-select" id="sch-scenario"></select></div>
+            <div class="col-md-2"><select class="form-select" id="sch-freq"><option value="hourly">Каждый час</option><option value="daily" selected>Каждый день</option><option value="weekly">Каждую неделю</option></select></div>
+            <div class="col-md-2"><select class="form-select" id="sch-channel"><option value="email">Email</option><option value="telegram">Telegram</option><option value="vk">VK</option></select></div>
+            <div class="col-md-3"><input class="form-control" id="sch-target" placeholder="email / chat_id / user_id"></div>
+            <div class="col-md-2"><button class="btn btn-primary w-100" id="sch-create">Добавить</button></div>
+          </div>
+        </div></div>
+        <table class="table table-hover" id="schedule-table">
+          <thead><tr><th>Сценарий</th><th>Частота</th><th>Канал</th><th>Получатель</th><th>Статус</th><th>Последний запуск</th><th></th></tr></thead>
+          <tbody></tbody>
+        </table>
+      </div>
+
+      <!-- Settings -->
+      <div id="view-settings" class="d-none">
+        <div class="row">
+          <div class="col-md-6">
+            <div class="card mb-3"><div class="card-body">
+              <h5>Сменить пароль</h5>
+              <input type="password" class="form-control mb-2" id="cp-old" placeholder="Текущий пароль">
+              <input type="password" class="form-control mb-2" id="cp-new" placeholder="Новый пароль">
+              <button class="btn btn-outline-primary" id="cp-btn">Сменить</button>
+            </div></div>
+          </div>
+          <div class="col-md-6">
+            <div class="card mb-3"><div class="card-body">
+              <h5>API-ключ</h5>
+              <p class="small text-muted">Для запуска тестов из CI/CD.</p>
+              <div class="input-group">
+                <input class="form-control" id="api-key-out" readonly placeholder="Ключ не создан">
+                <button class="btn btn-outline-primary" id="api-key-btn">Создать</button>
+              </div>
+            </div></div>
+          </div>
+        </div>
+        <div class="card mb-3"><div class="card-body">
+          <h5>Доступы к сайтам</h5>
+          <p class="small text-muted">Логин/пароль для тестирования закрытых зон. Пароль шифруется (Fernet) и никогда не показывается снова.</p>
+          <div class="row g-2">
+            <div class="col-md-2"><input class="form-control" id="cr-label" placeholder="Название"></div>
+            <div class="col-md-3"><input class="form-control" id="cr-login-url" placeholder="URL страницы входа"></div>
+            <div class="col-md-2"><input class="form-control" id="cr-username" placeholder="Логин"></div>
+            <div class="col-md-2"><input type="password" class="form-control" id="cr-password" placeholder="Пароль"></div>
+            <div class="col-md-1"><button class="btn btn-outline-primary w-100" id="cr-add">＋</button></div>
+          </div>
+          <ul class="list-group mt-3" id="cred-list"></ul>
+        </div></div>
+        <div class="card mb-3"><div class="card-body">
+          <h5>Вебхуки</h5>
+          <div class="row g-2">
+            <div class="col-md-7"><input class="form-control" id="wh-url" placeholder="https://your-server/hook"></div>
+            <div class="col-md-3"><input class="form-control" id="wh-secret" placeholder="secret (опционально)"></div>
+            <div class="col-md-2"><button class="btn btn-outline-primary w-100" id="wh-add">Добавить</button></div>
+          </div>
+          <ul class="list-group mt-3" id="wh-list"></ul>
+        </div></div>
+        <div class="card mb-3"><div class="card-body">
+          <h5>Подписка</h5>
+          <div id="sub-status" class="mb-3"></div>
+          <button class="btn btn-primary me-2" data-plan="pro">Оформить Pro (3 500 ₽/мес)</button>
+          <button class="btn btn-outline-primary" data-plan="enterprise">Оформить Enterprise (15 000 ₽/мес)</button>
+        </div></div>
+      </div>
+      <!-- FAQ -->
+      <div id="view-faq" class="d-none">
+        <h5>Часто задаваемые вопросы</h5>
+        <p class="text-muted">Как работать с QA Agent: прогоны, тест-кейсы, наборы регрессии, авторизация, отчёты.</p>
+        <input type="search" id="faq-search" class="form-control mb-2" placeholder="Поиск по вопросам: например «доступ», «набор», «отчёт»…">
+        <div id="faq-root"></div>
+      </div>
+
+    </div>
+  </div>
+
+  <footer class="bg-dark text-white py-3">
+    <div class="container d-flex justify-content-between">
+      <span>© 2026 QA Agent</span>
+      <span><a href="/faq.html" class="text-white-50 me-2">FAQ</a><a href="/legal.html" class="text-white-50 me-2">Соглашение</a><a href="/privacy.html" class="text-white-50">Конфиденциальность</a></span>
+    </div>
+  </footer>
+
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+  <script src="/static/js/faq-content.js"></script>
+  <script src="/static/js/dashboard.js?v=3"></script>
+</body>
+</html>

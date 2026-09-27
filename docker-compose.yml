@@ -1,0 +1,148 @@
+services:
+  db:
+    image: postgres:16-alpine
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: qa
+      POSTGRES_PASSWORD: qa
+      POSTGRES_DB: qa_agent
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U qa"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+    ports:
+      - "5432:5432"
+
+  redis:
+    image: redis:7-alpine
+    restart: unless-stopped
+    command: redis-server --appendonly yes
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 5s
+      timeout: 3s
+      retries: 10
+
+  mailhog:
+    image: mailhog/mailhog:v1.0.1
+    restart: unless-stopped
+    ports:
+      - "8025:8025"
+      - "1025:1025"
+
+  backend:
+    build:
+      context: .
+      dockerfile: docker/Dockerfile.backend
+    restart: unless-stopped
+    command: sh -c "alembic upgrade head && uvicorn app.main:app --host 0.0.0.0 --port 8000"
+    env_file: .env
+    environment:
+      DATABASE_URL: postgresql+psycopg2://qa:qa@db:5432/qa_agent
+      REDIS_URL: redis://redis:6379/0
+      SMTP_HOST: mailhog
+      SMTP_PORT: "1025"
+      FRONTEND_URL: http://localhost:8000
+      BACKEND_URL: http://localhost:8000
+      SANDBOX_RUNNER: docker
+      SANDBOX_NETWORK: qa_agent_default
+      CELERY_ALWAYS_EAGER: "false"
+      # Production hardening: never fall back to in-process (unlimited) execution
+      # when Docker fails, and cap total queued/running runs so authed users
+      # cannot overwhelm the workers (matches worker --concurrency=4).
+      SANDBOX_ALLOW_LOCAL_FALLBACK: "false"
+      GLOBAL_MAX_RUNS_ACTIVE: "4"
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
+      - ./frontend:/app/frontend:ro
+    ports:
+      - "8000:8000"
+    healthcheck:
+      test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://localhost:8000/health')"]
+      interval: 5s
+      timeout: 5s
+      retries: 20
+    depends_on:
+      db:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+
+  worker:
+    build:
+      context: .
+      dockerfile: docker/Dockerfile.backend
+    restart: unless-stopped
+    command: celery -A app.tasks.celery_app worker --loglevel=info --concurrency=4
+    env_file: .env
+    environment:
+      DATABASE_URL: postgresql+psycopg2://qa:qa@db:5432/qa_agent
+      REDIS_URL: redis://redis:6379/0
+      SMTP_HOST: mailhog
+      SMTP_PORT: "1025"
+      SANDBOX_RUNNER: docker
+      SANDBOX_NETWORK: qa_agent_default
+      CELERY_ALWAYS_EAGER: "false"
+      SANDBOX_ALLOW_LOCAL_FALLBACK: "false"
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
+    depends_on:
+      db:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+      backend:
+        condition: service_healthy
+
+  beat:
+    build:
+      context: .
+      dockerfile: docker/Dockerfile.backend
+    restart: unless-stopped
+    command: celery -A app.tasks.celery_app beat --loglevel=info
+    env_file: .env
+    environment:
+      DATABASE_URL: postgresql+psycopg2://qa:qa@db:5432/qa_agent
+      REDIS_URL: redis://redis:6379/0
+      CELERY_ALWAYS_EAGER: "false"
+    depends_on:
+      db:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+      backend:
+        condition: service_healthy
+
+  sandbox-image:
+    build:
+      context: .
+      dockerfile: docker/Dockerfile.sandbox
+    image: qa-agent-sandbox:latest
+    profiles: ["tools"]
+
+  prometheus:
+    image: prom/prometheus:v2.53.0
+    restart: unless-stopped
+    volumes:
+      - ./monitoring/prometheus.yml:/etc/prometheus/prometheus.yml
+    ports:
+      - "9090:9090"
+    depends_on:
+      - backend
+
+  grafana:
+    image: grafana/grafana:11.1.0
+    restart: unless-stopped
+    environment:
+      GF_SECURITY_ADMIN_PASSWORD: admin
+    ports:
+      - "3000:3000"
+    volumes:
+      - grafana-data:/var/lib/grafana
+
+volumes:
+  pgdata:
+  grafana-data:

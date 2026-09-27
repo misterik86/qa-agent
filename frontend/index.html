@@ -1,0 +1,221 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>QA Agent — AI-тестирование веб-приложений без написания скриптов</title>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+  <link href="/static/css/style.css" rel="stylesheet">
+</head>
+<body>
+  <nav class="navbar navbar-expand-lg navbar-dark bg-primary">
+    <div class="container">
+      <a class="navbar-brand" href="/">QA Agent</a>
+      <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#nav">
+        <span class="navbar-toggler-icon"></span>
+      </button>
+      <div class="collapse navbar-collapse" id="nav">
+        <ul class="navbar-nav ms-auto">
+          <li class="nav-item"><a class="nav-link" href="/#features">Возможности</a></li>
+          <li class="nav-item"><a class="nav-link" href="/#pricing">Тарифы</a></li>
+          <li class="nav-item"><a class="nav-link" href="/#calculator">Калькулятор</a></li>
+          <li class="nav-item"><a class="nav-link" href="/#templates">Шаблоны</a></li>
+          <li class="nav-item"><a class="nav-link" href="/faq.html">FAQ</a></li>
+          <li class="nav-item"><a class="btn btn-light ms-2" href="/dashboard.html">Войти</a></li>
+        </ul>
+      </div>
+    </div>
+  </nav>
+
+  <header class="hero py-5 text-center text-white">
+    <div class="container">
+      <h1 class="display-5 fw-bold">AI-агент для автоматизированного тестирования веб-приложений</h1>
+      <p class="lead mx-auto" style="max-width:700px">
+        Опишите сценарий на русском языке — система выполнит тестирование в изолированной песочнице
+        и сформирует детальный отчёт. Без написания скриптов.
+      </p>
+      <div class="mt-4">
+        <a href="/dashboard.html" class="btn btn-warning btn-lg me-2">Попробовать бесплатно (3 дня)</a>
+        <a href="#video" class="btn btn-outline-light btn-lg">Смотреть демо</a>
+      </div>
+    </div>
+  </header>
+
+  <section id="how" class="py-5 bg-light">
+    <div class="container">
+      <h2 class="text-center mb-4">Как это работает</h2>
+      <div class="row text-center">
+        <div class="col-md-3"><div class="p-3"><h4>1. URL</h4><p>Укажите адрес сайта</p></div></div>
+        <div class="col-md-3"><div class="p-3"><h4>2. Сценарий</h4><p>Опишите действия на русском или выберите автоскан</p></div></div>
+        <div class="col-md-3"><div class="p-3"><h4>3. Песочница</h4><p>Тест выполняется в изолированном контейнере</p></div></div>
+        <div class="col-md-3"><div class="p-3"><h4>4. Отчёт</h4><p>PDF, HTML, JSON, JUnit — со скриншотами ошибок</p></div></div>
+      </div>
+    </div>
+  </section>
+
+  <section id="features" class="py-5">
+    <div class="container">
+      <h2 class="text-center mb-4">Возможности</h2>
+      <div class="row">
+        <div class="col-md-6">
+          <ul class="list-group list-group-flush">
+            <li class="list-group-item">✔ Оба режима: конкретный сценарий и «Проверить всю страницу»</li>
+            <li class="list-group-item">✔ Двухуровневая валидация сценариев (синтаксис + AI)</li>
+            <li class="list-group-item">✔ Версионирование, статусы и метки сценариев</li>
+            <li class="list-group-item">✔ Планировщик с уведомлениями в Telegram / VK / email</li>
+            <li class="list-group-item">✔ REST API и вебхуки для CI/CD</li>
+          </ul>
+        </div>
+        <div class="col-md-6">
+          <ul class="list-group list-group-flush">
+            <li class="list-group-item">✔ Прогноз времени выполнения (WebSocket)</li>
+            <li class="list-group-item">✔ Отчёты в 4 форматах, скриншоты при ошибках</li>
+            <li class="list-group-item">✔ SSRF-защита и изоляция каждого теста</li>
+            <li class="list-group-item">✔ Интеграция с TestRail/Xray (Enterprise)</li>
+            <li class="list-group-item">✔ Оплата через ЮKassa, триал 3 дня</li>
+          </ul>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section id="video" class="py-5 bg-light">
+    <div class="container text-center">
+      <h2 class="mb-4">Демо-видео</h2>
+      <div class="ratio ratio-16x9 mx-auto" style="max-width:800px">
+        <iframe src="https://www.youtube.com/embed/dQw4w9WgXcQ" title="Демо QA Agent" allowfullscreen></iframe>
+      </div>
+    </div>
+  </section>
+
+  <section id="templates" class="py-5">
+    <div class="container">
+      <h2 class="text-center mb-4">Шаблоны сценариев</h2>
+      <div class="row">
+        <div class="col-md-4">
+          <div class="card mb-3">
+            <div class="card-body">
+              <h5 class="card-title">Логин</h5>
+              <p class="card-text text-muted small">Проверка авторизации</p>
+              <pre class="small bg-dark text-light p-2 rounded">Нажми на кнопку "Войти", введи в поле логин test@test.com, введи в поле пароль 123456, нажми "Отправить", проверь, что появилось сообщение "Добро пожаловать"</pre>
+              <button class="btn btn-outline-primary btn-sm copy-btn" data-target="#tpl-login">Копировать</button>
+            </div>
+          </div>
+        </div>
+        <div class="col-md-4">
+          <div class="card mb-3">
+            <div class="card-body">
+              <h5 class="card-title">Поиск</h5>
+              <p class="card-text text-muted small">Поиск товара</p>
+              <pre class="small bg-dark text-light p-2 rounded">Перейди на сайт, введи в поле поиска "смартфон", нажми кнопку "Найти", проверь, что появился список результатов</pre>
+              <button class="btn btn-outline-primary btn-sm copy-btn" data-target="#tpl-search">Копировать</button>
+            </div>
+          </div>
+        </div>
+        <div class="col-md-4">
+          <div class="card mb-3">
+            <div class="card-body">
+              <h5 class="card-title">Контактная форма</h5>
+              <p class="card-text text-muted small">Отправка формы</p>
+              <pre class="small bg-dark text-light p-2 rounded">Перейди на страницу контактов, заполни поле имя, заполни поле email, введи в поле сообщение "Тест", нажми "Отправить", проверь, что появилось сообщение "Спасибо"</pre>
+              <button class="btn btn-outline-primary btn-sm copy-btn" data-target="#tpl-contact">Копировать</button>
+            </div>
+          </div>
+        </div>
+      </div>
+      <textarea id="tpl-login" class="d-none">Нажми на кнопку "Войти", введи в поле логин test@test.com, введи в поле пароль 123456, нажми "Отправить", проверь, что появилось сообщение "Добро пожаловать"</textarea>
+      <textarea id="tpl-search" class="d-none">Перейди на сайт, введи в поле поиска "смартфон", нажми кнопку "Найти", проверь, что появился список результатов</textarea>
+      <textarea id="tpl-contact" class="d-none">Перейди на страницу контактов, заполни поле имя, заполни поле email, введи в поле сообщение "Тест", нажми "Отправить", проверь, что появилось сообщение "Спасибо"</textarea>
+    </div>
+  </section>
+
+  <section id="calculator" class="py-5 bg-light">
+    <div class="container" style="max-width:700px">
+      <h2 class="text-center mb-4">Калькулятор стоимости</h2>
+      <div class="card">
+        <div class="card-body">
+          <div class="mb-3">
+            <label class="form-label">Тестов в месяц: <span id="calc-tests-val">50</span></label>
+            <input type="range" class="form-range" id="calc-tests" min="10" max="500" step="10" value="50">
+          </div>
+          <div class="mb-3">
+            <label class="form-label">Параллельных прогонов: <span id="calc-par-val">5</span></label>
+            <input type="range" class="form-range" id="calc-par" min="1" max="20" value="5">
+          </div>
+          <div class="form-check mb-3">
+            <input class="form-check-input" type="checkbox" id="calc-sso">
+            <label class="form-check-label" for="calc-sso">SSO + Self-hosted + TestRail/Xray (Enterprise)</label>
+          </div>
+          <h4 class="text-primary">Ориентировочная стоимость: <span id="calc-price">—</span></h4>
+          <p class="text-muted small">Pro — 3 500 ₽/мес (100 тестов, 5 параллельных). Enterprise — 15 000 ₽/мес (безлимит).</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section id="pricing" class="py-5">
+    <div class="container">
+      <h2 class="text-center mb-4">Тарифы</h2>
+      <div class="row justify-content-center">
+        <div class="col-md-4">
+          <div class="card mb-3 text-center">
+            <div class="card-body">
+              <h3>Trial</h3>
+              <p class="text-muted">Бесплатно 3 дня</p>
+              <ul class="text-start">
+                <li>Полный доступ</li>
+                <li>Без привязки карты</li>
+              </ul>
+              <a href="/dashboard.html" class="btn btn-outline-primary">Начать</a>
+            </div>
+          </div>
+        </div>
+        <div class="col-md-4">
+          <div class="card mb-3 text-center border-primary">
+            <div class="card-body">
+              <h3>Pro</h3>
+              <p class="text-primary fs-4">3 500 ₽/мес</p>
+              <ul class="text-start">
+                <li>100 тестов/мес</li>
+                <li>5 параллельных прогонов</li>
+                <li>Поддержка по email</li>
+                <li>Планировщик и уведомления</li>
+              </ul>
+              <a href="/dashboard.html" class="btn btn-primary">Выбрать Pro</a>
+            </div>
+          </div>
+        </div>
+        <div class="col-md-4">
+          <div class="card mb-3 text-center">
+            <div class="card-body">
+              <h3>Enterprise</h3>
+              <p class="text-primary fs-4">15 000 ₽/мес</p>
+              <ul class="text-start">
+                <li>Неограниченные тесты</li>
+                <li>20 параллельных прогонов</li>
+                <li>SSO, аудит, self-hosted</li>
+                <li>TestRail / Xray интеграция</li>
+              </ul>
+              <a href="/dashboard.html" class="btn btn-outline-primary">Выбрать Enterprise</a>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <footer class="bg-dark text-white py-4">
+    <div class="container d-flex justify-content-between">
+      <span>© 2026 QA Agent</span>
+      <span>
+        <a href="/legal.html" class="text-white-50 me-2">Пользовательское соглашение</a>
+        <a href="/privacy.html" class="text-white-50 me-2">Политика конфиденциальности</a>
+        <a href="/faq.html" class="text-white-50">FAQ</a>
+      </span>
+    </div>
+  </footer>
+
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+  <script src="/static/js/landing.js"></script>
+</body>
+</html>

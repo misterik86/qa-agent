@@ -1,0 +1,64 @@
+# ── Secrets ────────────────────────────────────────────────────────────
+.env
+.env.*
+!.env.example
+*.pem
+*.key
+*.p12
+service-account*.json
+
+# ── Virtualenv / deps ──────────────────────────────────────────────────
+.venv/
+venv/
+env/
+node_modules/
+__pycache__/
+*.py[cod]
+*.egg-info/
+
+# ── Test / coverage artefacts ───────────────────────────────────────────
+.pytest_cache/
+.coverage
+.coverage.*
+coverage.xml
+htmlcov/
+.mypy_cache/
+.ruff_cache/
+.tox/
+
+# ── Local databases (runtime state, not schema) ─────────────────────────
+*.db
+*.db-journal
+*.sqlite
+*.sqlite3
+backend/test*.db
+backend/e2e_full.db
+test_run.db
+
+# ── Run artefacts ───────────────────────────────────────────────────────
+backend/data/screenshots/
+backend/data/uploads/
+backend/data/reports/
+*.log
+
+# ── Personal documents — never publish ──────────────────────────────────
+# Отклики на вакансии, внутренние PDF заказчиков, скриншоты, скрипты.
+# Личные данные и конфиденциальные материалы компаний.
+Гайд по откликам/
+*откликам*/
+~$_*
+~$*
+*.docx
+*.doc
+*.pdf
+*.jpg
+*.jpeg
+
+# ── OS / editor ─────────────────────────────────────────────────────────
+.DS_Store
+Thumbs.db
+desktop.ini
+.idea/
+.vscode/
+!.vscode/extensions.json
+*.swp
